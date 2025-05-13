@@ -26,7 +26,8 @@ An AI-powered pipeline for analyzing vendor costs, combining structured data pro
    SERPER_API_KEY=your_serper_key
    
 ### Prepare input data:
-Place vendor data in a CSV file with columns: `Vendor`, `Amount` .
+Place vendor data in a CSV file with columns: `Vendor`, `Amount`  in the same directory as the script.
+In my case the file is names `vendors.csv`
 
 ### Run the pipeline:
 Execute the python script: `python vendor_ai.py`
