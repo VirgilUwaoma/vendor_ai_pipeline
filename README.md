@@ -15,8 +15,8 @@ An AI-powered pipeline for analyzing vendor costs, combining structured data pro
 
 ## Setup  
 1. **Clone the repository**:  
-   git clone https://github.com/your-username/vendor_ai_pipeline.git
-   cd vendor_ai_pipeline
+   - git clone https://github.com/your-username/vendor_ai_pipeline.git
+   - cd vendor_ai_pipeline
 
 2. **Install dependencies**:
    pip install -r requirements.txt
