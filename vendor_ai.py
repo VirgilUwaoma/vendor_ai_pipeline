@@ -13,7 +13,7 @@ from langchain_community.utilities import GoogleSerperAPIWrapper
 load_dotenv()
 
 # Initialize components
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+llm = ChatOpenAI(model="gpt-4.1-nano", temperature=0)
 search = GoogleSerperAPIWrapper()
 
 # Chain 1: Generate a search query from vendor name - using explicit constructor
@@ -26,7 +26,7 @@ query_chain = query_prompt | llm | (lambda x: x.content)
 
 # Chain 2: Summarize search results into one sentence - using explicit constructor
 summary_template = """
-Analyze the following search results about a vendor and infer the core services they provide. 
+Analyze the search results about a vendor and infer the core services they provide. 
 Focus on identifying patterns, key offerings, and the primary value proposition—not just summarizing the text. 
 Avoid mentioning the vendor's name. Be concise and descriptive in one sentence.  
 
@@ -98,6 +98,7 @@ def analyze_vendors(input_file: str) -> list[dict]:
             "Description": result["service_description"],
             "Category": result["category"]
         })
+        print(f"classifiying vendor: {vendor['Vendor']} - {result["category"]} - {result["service_description"]}")
     return processed_data
 
 def recommend_actions(processed_data: list[dict]) -> list[dict]:
@@ -147,8 +148,7 @@ def recommend_actions(processed_data: list[dict]) -> list[dict]:
     - "terminate"  
     - "optimize"  
 
-Recommendation for {vendor_name}: 
-    """
+Recommendation for {vendor_name}: """
     
     recommendation_prompt = PromptTemplate.from_template(recommendation_template)
     recommendation_chain = recommendation_prompt | llm | (lambda x: x.content.strip().lower())
@@ -163,6 +163,7 @@ Recommendation for {vendor_name}:
             "description": vendor["Description"]
         })
         vendor["Action"] = recommendation
+        print(f"recommending action for vendor: {vendor['Vendor']} - {recommendation}")
         
     return processed_data
 
@@ -212,6 +213,7 @@ def identify_top_opportunities(processed_data_with_actions: list[dict]) -> dict:
     analysis_prompt = PromptTemplate.from_template(analysis_template)
     analysis_chain = analysis_prompt | llm | (lambda x: x.content)
     
+    print("identifying opportunities")
     opportunities = analysis_chain.invoke({"vendor_actions": vendor_actions})
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"opportunities_{timestamp}.txt"
@@ -227,11 +229,11 @@ process_vendors_tool = RunnablePassthrough.assign(
 )
 
 add_actions_tool = RunnablePassthrough.assign(
-    processed_data=lambda x: recommend_actions(x["processed_data"])
+    processed_data_with_actions=lambda x: recommend_actions(x["processed_data"])
 )
 
 identify_opportunities_tool = RunnablePassthrough.assign(
-    top_opportunities=lambda x: identify_top_opportunities(x["processed_data"])
+    top_opportunities=lambda x: identify_top_opportunities(x["processed_data_with_actions"])
 )
 
 save_results_tool = RunnablePassthrough(lambda x: save_to_csv(x["processed_data"]))
@@ -243,5 +245,3 @@ full_pipeline =  (
     | identify_opportunities_tool
     | save_results_tool
     )
-
-results = full_pipeline.invoke({"input_file": "vendors.csv"})
