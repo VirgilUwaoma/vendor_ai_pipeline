@@ -245,3 +245,5 @@ full_pipeline =  (
     | identify_opportunities_tool
     | save_results_tool
     )
+
+results = full_pipeline.invoke({"input_file": "vendors.csv"})
